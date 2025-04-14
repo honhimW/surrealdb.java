@@ -26,6 +26,43 @@ sourceSets {
     }
 }
 
+build {
+    dependsOn 'buildRust'
+}
+
+clean {
+    dependsOn 'cleanRust'
+}
+
+tasks.register('buildAllTarget', Exec) {
+    workingDir project.rootDir
+    environment CARGO_TERM_COLOR: 'always'
+    def targets = [
+            'x86_64-unknown-linux-gnu',
+            'aarch64-unknown-linux-gnu',
+            'x86_64-pc-windows-msvc',
+            'aarch64-apple-darwin',
+    ]
+    for (final def target in targets) {
+        commandLine 'rustup', 'target', 'add', target
+    }
+    for (final def target in targets) {
+        commandLine 'cargo', 'build', '--target', target, '--release'
+    }
+}
+
+tasks.register('buildRust', Exec) {
+    commandLine 'cargo', 'build', '--release'
+    workingDir project.rootDir
+    environment CARGO_TERM_COLOR: 'always'
+}
+
+tasks.register('cleanRust', Exec) {
+    commandLine 'cargo', 'clean'
+    workingDir project.rootDir
+    environment CARGO_TERM_COLOR: 'always'
+}
+
 configurations {
     integrationTestImplementation.extendsFrom testImplementation
     integrationTestRuntimeOnly.extendsFrom testRuntimeOnly
